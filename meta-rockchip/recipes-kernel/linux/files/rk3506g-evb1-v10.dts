@@ -1,0 +1,388 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+
+#include "rk3506.dtsi"
+#include "rk3506-evb1-v10.dtsi"
+#include <dt-bindings/display/drm_mipi_dsi.h>
+
+/ {
+	model = "Rockchip RK3506G(QFN128) EVB1 V10 Board";
+	compatible = "rockchip,rk3506g-evb1-v10", "rockchip,rk3506";
+
+	chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff0a0000,115200 console=ttyFIQ0,115200 storagemedia=sd root=/dev/mmcblk0p3 rootfstype=ext4 rw rootwait";
+	};
+
+	extcon_usb: extcon-usb {
+		compatible = "linux,extcon-usb-gpio";
+		vbus-gpio = <&gpio1 RK_PC5 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_extcon_vbus>;
+		status = "okay";
+	};
+
+	vcc3v3_lcd_n: vcc3v3-lcd0-n {
+		compatible = "regulator-fixed";
+		/* GPIO1_D3 is now used for LCD_RESET, so remove GPIO control for power */
+		/* Power is always on or controlled by hardware */
+		regulator-name = "vcc3v3_lcd_n";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		status = "okay";
+		regulator-state-mem {
+			regulator-on-in-suspend;
+		};
+	};
+
+	vcc5v0_otg0: vcc5v0-otg0-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_otg0";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;
+		vin-supply = <&vcc_sys>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&vcc5v0_otg0_en>;
+	};
+
+	vcc5v0_otg1: vcc5v0-otg1-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_otg1";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		gpio = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;
+		vin-supply = <&vcc_sys>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&vcc5v0_otg1_en>;
+	};
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm0_4ch_2 0 25000 0>;
+		power-supply = <&vcc3v3_lcd_n>;
+		brightness-levels = <
+			  0  20  20  21  21  22  22  23
+			 23  24  24  25  25  26  26  27
+			 27  28  28  29  29  30  30  31
+			 31  32  32  33  33  34  34  35
+			 35  36  36  37  37  38  38  39
+			 40  41  42  43  44  45  46  47
+			 48  49  50  51  52  53  54  55
+			 56  57  58  59  60  61  62  63
+			 64  65  66  67  68  69  70  71
+			 72  73  74  75  76  77  78  79
+			 80  81  82  83  84  85  86  87
+			 88  89  90  91  92  93  94  95
+			 96  97  98  99 100 101 102 103
+			104 105 106 107 108 109 110 111
+			112 113 114 115 116 117 118 119
+			120 121 122 123 124 125 126 127
+			128 129 130 131 132 133 134 135
+			136 137 138 139 140 141 142 143
+			144 145 146 147 148 149 150 151
+			152 153 154 155 156 157 158 159
+			160 161 162 163 164 165 166 167
+			168 169 170 171 172 173 174 175
+			176 177 178 179 180 181 182 183
+			184 185 186 187 188 189 190 191
+			192 193 194 195 196 197 198 199
+			200 201 202 203 204 205 206 207
+			208 209 210 211 212 213 214 215
+			216 217 218 219 220 221 222 223
+			224 225 226 227 228 229 230 231
+			232 233 234 235 236 237 238 239
+			240 241 242 243 244 245 246 247
+			248 249 250 251 252 253 254 255
+		>;
+		default-brightness-level = <200>;
+		status = "okay";
+	};
+};
+
+&acodec_sound {
+	status = "disabled";
+};
+
+&cma {
+	size = <0x1600000>;
+};
+
+&dsi {
+	status = "okay";
+	/* Try higher lane rate to match manufacturer's configuration (996 Mbps) */
+	/* Original: 850, Manufacturer: 996 */
+	rockchip,lane-rate = <996>;
+
+	panel@0 {
+		compatible = "simple-panel-dsi";
+		reg = <0>;
+		power-supply = <&vcc3v3_lcd_n>;
+		/* GPIO1_D3 -> LCD_RESET (according to hardware connection table) */
+		reset-gpios = <&gpio1 RK_PD3 GPIO_ACTIVE_LOW>;
+		backlight = <&backlight>;
+		
+		/* Timing delays */
+		reset-delay-ms = <30>;
+		enable-delay-ms = <100>;
+		prepare-delay-ms = <20>;
+		unprepare-delay-ms = <20>;
+		disable-delay-ms = <20>;
+		init-delay-ms = <120>;
+		
+		/* DSI configuration */
+		dsi,flags = <(MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST |
+			      MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_NO_EOT_PACKET)>;
+		dsi,format = <MIPI_DSI_FMT_RGB888>;
+		dsi,lanes = <2>;
+		
+		/* Panel initialization sequence from rk3506-evm-nand-480x800-mipi.dtsi */
+		/* Note: Comments in panel-init-sequence may cause parsing errors, removed them */
+		panel-init-sequence = [
+			05 78 01 01
+			05 78 01 11
+			39 00 06 FF 77 01 00 00 11
+			15 00 02 D1 11
+			15 00 02 55 B0
+			39 00 06 FF 77 01 00 00 10
+			39 00 03 C0 63 00
+			39 00 03 C1 09 02
+			39 00 03 C2 37 08
+			15 00 02 C7 00
+			15 00 02 CC 38
+			39 00 11 B0 00 11 19 0C 10 06 07 0A 09 22 04 10 0E 28 30 1C
+			39 00 11 B1 00 12 19 0D 10 04 06 07 08 23 04 12 11 28 30 1C
+			39 00 06 FF 77 01 00 00 11
+			15 00 02 B0 4D
+			15 00 02 B1 60
+			15 00 02 B2 07
+			15 00 02 B3 80
+			15 00 02 B5 47
+			15 00 02 B7 8A
+			15 00 02 B8 21
+			15 00 02 C1 78
+			15 00 02 C2 78
+			15 64 02 D0 88
+			39 00 04 E0 00 00 02
+			39 00 0C E1 01 A0 03 A0 02 A0 04 A0 00 44 44
+			39 00 0D E2 00 00 00 00 00 00 00 00 00 00 00 00
+			39 00 05 E3 00 00 33 33
+			39 00 03 E4 44 44
+			39 00 11 E5 01 26 A0 A0 03 28 A0 A0 05 2A A0 A0 07 2C A0 A0
+			39 00 05 E6 00 00 33 33
+			39 00 03 E7 44 44
+			39 00 11 E8 02 26 A0 A0 04 28 A0 A0 06 2A A0 A0 08 2C A0 A0
+			39 00 08 EB 00 01 E4 E4 44 00 40
+			39 00 11 ED FF F7 65 4F 0B A1 CF FF FF FC 1A B0 F4 56 7F FF
+			39 00 06 FF 77 01 00 00 00
+			15 00 02 36 00
+			15 00 02 3A 55
+			05 78 01 11
+			05 14 01 29
+		];
+		
+		/* Panel exit sequence */
+		panel-exit-sequence = [
+			05 00 01 28
+			05 00 01 10
+		];
+		
+		/* Bits per color - required by panel-simple-dsi */
+		/* Must be before subnodes (display-timings) */
+		bpc = <8>;
+		
+		/* Display timings for 480x800 panel */
+		display-timings {
+			native-mode = <&dsi_timing0>;
+			dsi_timing0: timing0 {
+				clock-frequency = <27000000>;
+				hactive = <480>;
+				vactive = <800>;
+				hfront-porch = <32>;
+				hsync-len = <4>;
+				hback-porch = <32>;
+				vfront-porch = <9>;
+				vsync-len = <4>;
+				vback-porch = <3>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <0>;
+				pixelclk-active = <0>;
+			};
+		};
+	};
+};
+
+&dsi_dphy {
+	status = "okay";
+};
+
+&dsi_in_vop {
+	status = "okay";
+};
+
+&es8388 {
+	status = "disabled";
+};
+
+&es8388_sound {
+	status = "disabled";
+};
+
+&i2c2 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io4_i2c2_scl &rm_io5_i2c2_sda>;
+	status = "okay";
+
+	gt1x: gt1x@14 {
+		compatible = "goodix,gt1x";
+		reg = <0x14>;
+		gtp_ics_slot_report;
+		goodix,rst-gpio = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>; /* GPIO1_B4 -> CAP_RST */
+		goodix,irq-gpio = <&gpio0 RK_PB1 GPIO_ACTIVE_LOW>; /* GPIO0_B1 -> CAP_TS_INT */
+		power-supply = <&vcc3v3_lcd_n>;
+		status = "okay";
+	};
+};
+
+&pinctrl {
+	usb {
+		usb_extcon_vbus: usb-extcon-vbus {
+			rockchip,pins = <1 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		vcc5v0_otg0_en: vcc5v0-otg0-en {
+			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		vcc5v0_otg1_en: vcc5v0-otg1-en {
+			rockchip,pins = <1 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	sdmmc {
+		/omit-if-no-ref/
+		sdmmc_det: sdmmc-det {
+			rockchip,pins = <3 RK_PA7 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};
+
+&display_subsystem {
+	status = "okay";
+	/* logo-memory-region = <&drm_logo>; */
+};
+
+&vop {
+	status = "okay";
+};
+
+&route_dsi {
+	status = "okay";
+};
+
+&sai1 {
+	status = "disabled";
+};
+
+&gmac0 {
+	phy-mode = "rmii";
+	clock_in_out = "input";
+
+	snps,reset-gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_LOW>;
+	snps,reset-active-low;
+	snps,reset-delays-us = <0 20000 100000>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&eth_rmii0_miim_pins
+		     &eth_rmii0_tx_bus2_pins
+		     &eth_rmii0_rx_bus2_pins
+		     &eth_rmii0_clk_pins>;
+
+	phy-handle = <&rmii_phy0>;
+	status = "okay";
+};
+
+&mdio0 {
+	status = "okay";
+	/* Override PHY configuration for YT8512B */
+	/delete-node/ phy@1;
+	rmii_phy0: phy@0 {
+		compatible = "motorcomm,yt8512", "ethernet-phy-id0000.0011", "ethernet-phy-ieee802.3-c22";
+		reg = <0x0>;
+		max-speed = <100>;
+		clocks = <&cru CLK_MAC_OUT>;
+		assigned-clocks = <&cru CLK_MAC_OUT>;
+		assigned-clock-rates = <25000000>;
+	};
+};
+
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io26_uart3_tx &rm_io25_uart3_rx &rm_io24_uart3_rtsn &rm_io29_uart3_ctsn>;
+	linux,rs485-enabled-at-boot-time;	/* enable rs485 */
+	status = "okay";
+};
+
+&uart4 {
+	dma-names = "!tx", "!rx";	/* remove ! to enable dma */
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io27_uart4_tx &rm_io28_uart4_rx>;   /* vccio1 */
+	status = "okay";
+};
+
+&u2phy_otg0 {
+	vbus-supply = <&vcc5v0_otg0>;
+	rockchip,gpio-vbus-det;
+	status = "okay";
+};
+
+&u2phy_otg1 {
+	phy-supply = <&vcc5v0_otg1>;
+	status = "okay";
+};
+
+&usb2phy {
+	extcon = <&extcon_usb>;
+	status = "okay";
+};
+
+&pwm0_4ch_2 {
+	pinctrl-names = "active";
+	pinctrl-0 = <&rm_io10_pwm0_ch2>;
+	assigned-clocks = <&cru CLK_PWM0>;
+	assigned-clock-rates = <100000000>;
+	status = "okay";
+};
+
+&mmc {
+	/* Override MMC configuration for SD card support */
+	/* Remove no-sd and non-removable properties from base dtsi */
+	/delete-property/ no-sd;
+	/delete-property/ non-removable;
+	/delete-property/ mmc-pwrseq;
+	no-sdio;
+	no-mmc;
+	cap-mmc-highspeed;
+	cap-sd-highspeed;
+	/* DEBUG: Temporarily disable CD detection to force card recognition */
+	/* cd-gpios = <&gpio3 RK_PA7 GPIO_ACTIVE_LOW>; */
+	broken-cd;
+	disable-wp;
+	sd-uhs-sdr104;
+	max-frequency = <150000000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&sdmmc_clk_pins &sdmmc_cmd_pins &sdmmc_bus4_pins>;
+	status = "okay";
+};
+

@@ -1,0 +1,86 @@
+---------------------------------------------
+# 1. 设置环境
+cd /home/xuning/poky-rk3506-evm/poky
+source oe-init-build-env build
+
+# 2. 完全清理产生的镜像并进行构建
+bitbake -c cleanall core-image-minimal
+bitbake core-image-minimal
+---------------------------------------------
+
+
+
+---------------------------------------------
+#更改内核配置使用
+
+bitbake linux-rockchip -c configure -f
+bitbake linux-rockchip
+bitbake core-image-minimal
+---------------------------------------------
+
+
+---------------------------------------------
+#只清理构建缓存，不清理下载的源码包
+
+# 1. 设置环境
+cd /home/xuning/poky-rk3506-evm/poky
+source oe-init-build-env build
+
+# 2. 清理内核
+bitbake -c cleansstate linux-rockchip
+bitbake linux-rockchip
+
+# 3. 清理uboot
+bitbake -c cleansstate u-boot-rockchip
+bitbake u-boot-rockchip
+bitbake linux-rockchip
+
+# 4. 重新构建镜像（自动生成 update.img）
+bitbake -c clean core-image-minimal
+bitbake core-image-minimal
+
+-----------------------------------------------------
+
+
+-----------------------------------------------------
+# 完全清理下载的包和构建的文件
+
+# 1. 设置环境
+cd /home/xuning/poky-rk3506-evm/poky
+source oe-init-build-env build
+
+# 2. 清理内核
+bitbake -c cleanall linux-rockchip
+bitbake linux-rockchip
+
+# 3. 清理uboot
+bitbake -c cleanall u-boot-rockchip
+bitbake u-boot-rockchip
+
+# 4. 重新构建镜像（自动生成 update.img）
+bitbake -c cleanall core-image-minimal
+bitbake core-image-minimal
+-----------------------------------------------------
+
+
+RKDevTool
+
+
+
+git add .
+git commit -m "Fix"
+
+bitbake -c cleansstate python3-pyqt5
+bitbake python3-pyqt5
+bitbake core-image-minimal
+
+
+cd /home/xuning/poky-rk3506-evm/poky/build
+bitbake qtbase -c cleanall
+bitbake qtbase
+bitbake core-image-minimal
+
+
+
+
+

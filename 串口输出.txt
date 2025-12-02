@@ -1,0 +1,94 @@
+
+[00:40:20.234]发→◇pyqt-simple-test
+□
+[00:40:20.236]收←◆pyqt-simple-test
+
+[00:40:20.633]收←◆============================================================
+PyQt5 Diagnostic Test
+============================================================
+
+Step 1: Testing Python...
+Python version: 3.12.12 (main, Oct  9 2025, 11:07:00) [GCC 13.4.0]
+Python executable: /usr/bin/python3
+sizeof(int): 16
+
+Step 2: Checking Python modules path...
+sys.path: ['/usr/bin', '/usr/lib/python312.zip', '/usr/lib/python3.12', '/usr/lib/python3.12/lib-dynload', '/usr/lib/python3.12/site-packages']
+
+Step 3: Testing PyQt5 package...
+
+[00:40:20.971]收←◆PyQt5 package found at: /usr/lib/python3.12/site-packages/PyQt5/__init__.py
+
+Step 4: Testing PyQt5.QtCore...
+
+[00:40:21.374]收←◆鉁?QtCore imported successfully
+  Qt version: 5.15.13
+  PyQt version: 5.15.10
+
+Step 5: Testing PyQt5.QtGui...
+
+[00:40:21.632]收←◆鉁?QtGui imported successfully
+
+Step 6: Testing PyQt5.QtWidgets...
+
+[00:40:21.928]收←◆鉁?QtWidgets imported successfully
+
+============================================================
+鉁?All import tests passed!
+============================================================
+
+PyQt5 modules are working correctly.
+To test GUI, run 'pyqt-test' with proper QT_QPA_PLATFORM setting.
+Example: QT_QPA_PLATFORM=eglfs pyqt-test
+
+[00:40:22.056]收←◆root@rockchip-rk3506-evb:~# 
+root@rockchip-rk3506-evb:~# 
+[00:40:44.532]发→◇pyqt-test
+□
+[00:40:44.542]收←◆pyqt-test
+
+[00:40:45.230]收←◆Using QPA platform: eglfs
+
+[00:40:45.454]收←◆QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/var/volatile/tmp/runtime-root'
+
+[00:40:45.505]收←◆MESA-LOADER: failed to open rockchip: /usr/lib/dri/rockchip_dri.so: cannot open shared object file: No such file or directory (search paths /usr/lib/dri, suffix _dri)
+
+[00:40:45.697]收←◆Failed to move cursor on screen DSI1: -14
+Failed to move cursor on screen DSI1: -14
+
+[00:40:45.945]收←◆QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+
+[00:40:46.342]收←◆QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+
+[00:40:46.381]收←◆QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /usr/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+
+[00:40:48.071]收←◆[   62.045326] rockchip-vop ff600000.vop: [drm:vop_crtc_atomic_enable] Update mode to 480x800p60, type: 16
+
+[00:40:48.876]收←◆[   62.851508] dw-mipi-dsi-rockchip ff640000.dsi: [drm:dw_mipi_dsi_bridge_atomic_enable] final DSI-Link bandwidth: 996 x 2 Mbps
