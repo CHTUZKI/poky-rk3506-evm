@@ -1,0 +1,214 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ * SPI Display Configuration for RK3506G EVB
+ * Display: ST7789V controller, 240x320 resolution, 2.4 inch
+ */
+
+/dts-v1/;
+
+#include "rk3506.dtsi"
+#include "rk3506-evb1-v10.dtsi"
+
+/ {
+	model = "Rockchip RK3506G(QFN128) EVB1 V10 Board + SPI Display";
+	compatible = "rockchip,rk3506g-evb1-v10-spi", "rockchip,rk3506";
+
+	chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff0a0000,115200 console=ttyFIQ0,115200 storagemedia=sd root=/dev/mmcblk0p3 rootfstype=ext4 rw rootwait";
+	};
+
+	extcon_usb: extcon-usb {
+		compatible = "linux,extcon-usb-gpio";
+		vbus-gpio = <&gpio1 RK_PC5 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_extcon_vbus>;
+		status = "okay";
+	};
+
+	vcc5v0_otg0: vcc5v0-otg0-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_otg0";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;
+		vin-supply = <&vcc_sys>;
+		regulator-state-mem {
+			regulator-off-in-suspend;
+		};
+	};
+
+	/* SPI Display Power Supply */
+	vcc3v3_lcd: vcc3v3-lcd {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_lcd";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		status = "okay";
+	};
+
+	/* Backlight for SPI Display */
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm1 0 25000 0>;
+		power-supply = <&vcc3v3_lcd>;
+		brightness-levels = <
+			  0  20  20  21  21  22  22  23
+			 23  24  24  25  25  26  26  27
+			 27  28  28  29  29  30  30  31
+			 31  32  32  33  33  34  34  35
+			 35  36  36  37  37  38  38  39
+			 40  41  42  43  44  45  46  47
+			 48  49  50  51  52  53  54  55
+			 56  57  58  59  60  61  62  63
+			 64  65  66  67  68  69  70  71
+			 72  73  74  75  76  77  78  79
+			 80  81  82  83  84  85  86  87
+			 88  89  90  91  92  93  94  95
+			 96  97  98  99 100 101 102 103
+			104 105 106 107 108 109 110 111
+			112 113 114 115 116 117 118 119
+			120 121 122 123 124 125 126 127
+			128 129 130 131 132 133 134 135
+			136 137 138 139 140 141 142 143
+			144 145 146 147 148 149 150 151
+			152 153 154 155 156 157 158 159
+			160 161 162 163 164 165 166 167
+			168 169 170 171 172 173 174 175
+			176 177 178 179 180 181 182 183
+			184 185 186 187 188 189 190 191
+			192 193 194 195 196 197 198 199
+			200 201 202 203 204 205 206 207
+			208 209 210 211 212 213 214 215
+			216 217 218 219 220 221 222 223
+			224 225 226 227 228 229 230 231
+			232 233 234 235 236 237 238 239
+			240 241 242 243 244 245 246 247
+			248 249 250 251 252 253 254 255
+		>;
+		default-brightness-level = <200>;
+		status = "okay";
+	};
+};
+
+&cma {
+	size = <0x1600000>;
+};
+
+/* Enable SPI0 Controller */
+&spi0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0m0_pins>;
+	max-freq = <48000000>;
+
+	/* ST7789V SPI Display */
+	display@0 {
+		compatible = "sitronix,st7789v";
+		reg = <0>;
+		
+		/* SPI Configuration */
+		spi-max-frequency = <40000000>;  /* 40MHz SPI clock */
+		
+		/* GPIO Configuration */
+		/* D/C (Data/Command) pin - GPIO0_PA2 */
+		dc-gpios = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;
+		
+		/* RESET pin - GPIO0_PA3 */
+		reset-gpios = <&gpio0 RK_PA3 GPIO_ACTIVE_LOW>;
+		
+		/* Backlight */
+		backlight = <&backlight>;
+		
+		/* Power supply */
+		power-supply = <&vcc3v3_lcd>;
+		
+		/* Display properties */
+		width-mm = <50>;   /* Physical width in mm */
+		height-mm = <67>;  /* Physical height in mm */
+		
+		/* Panel timing (240x320 resolution) */
+		panel-timing {
+			hactive = <240>;
+			vactive = <320>;
+			hback-porch = <0>;
+			hfront-porch = <0>;
+			vback-porch = <0>;
+			vfront-porch = <0>;
+			hsync-len = <0>;
+			vsync-len = <0>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+			de-active = <0>;
+			pixelclk-active = <0>;
+		};
+		
+		/* Display rotation (0, 90, 180, 270) */
+		rotation = <0>;
+		
+		/* RGB format */
+		format = <0x66>; /* RGB666 */
+		
+		status = "okay";
+	};
+};
+
+/* PWM for Backlight Control */
+&pwm1 {
+	status = "okay";
+	pinctrl-names = "active";
+	pinctrl-0 = <&pwm1m0_pins>;
+};
+
+/* USB OTG Configuration */
+&u2phy_otg0 {
+	rockchip,vbus-always-on;
+};
+
+&usbdrd30 {
+	status = "okay";
+};
+
+&usbdrd_dwc3_0 {
+	status = "okay";
+	dr_mode = "otg";
+	extcon = <&extcon_usb>;
+};
+
+&usbhost {
+	status = "okay";
+};
+
+&usbhost_dwc2 {
+	status = "okay";
+};
+
+/* I2C for touch controller or other peripherals (optional) */
+&i2c2 {
+	status = "okay";
+	clock-frequency = <400000>;
+};
+
+/* Pin Control */
+&pinctrl {
+	usb {
+		usb_extcon_vbus: usb-extcon-vbus {
+			rockchip,pins = <1 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+	
+	/* SPI display GPIOs */
+	spi_display {
+		spi_display_dc: spi-display-dc {
+			rockchip,pins = <0 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		
+		spi_display_rst: spi-display-rst {
+			rockchip,pins = <0 RK_PA3 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};
+
