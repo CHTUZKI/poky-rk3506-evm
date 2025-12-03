@@ -73,3 +73,23 @@ UART0_RX/JTAG_TMS_M1 ---> UART0_RX/JTAG_TMS_M1_GPIO0_C7
 
 除去使用的，剩下的都是没有使用的，
 引脚标号很乱，唯一和RK3506G能对上号的只有GPIO开头的
+
+
+
+
+
+SPI屏幕连接
+
+SPI0_CLK --->   GPIO0_A1
+SPI0_MISO --->  GPIO0_A6
+SPI0_MOSI --->  GPIO0_A3
+SPI0_CSN0 --->  GPIO0_A7
+
+lcd_reset ---> GPIO1_C5
+DC/RS     ---> GPIO1_C7
+LED       ---> GPIO1_D1
+
+
+
+
+
