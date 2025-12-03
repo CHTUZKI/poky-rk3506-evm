@@ -16,6 +16,8 @@ SRC_URI = " \
 	file://${THISDIR}/files/backlight.cfg \
 	file://${THISDIR}/files/mpp.cfg \
 	file://${THISDIR}/files/rk3506g-evb1-v10.dts \
+	file://${THISDIR}/files/rk3506g-evb1-v10-dsi.dts \
+	file://${THISDIR}/files/rk3506g-evb1-v10-rgb.dts \
 "
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
@@ -28,11 +30,30 @@ SRC_URI:append = " ${@bb.utils.contains('IMAGE_FSTYPES', 'ext4', \
 		   '', \
 		   d)}"
 
-# Replace device tree file and drivers from meta-rockchip layer
+# Replace device tree files from meta-rockchip layer
 do_configure:append() {
-	bbnote "Replacing device tree file rk3506g-evb1-v10.dts from meta-rockchip layer"
+	bbnote "Replacing device tree files from meta-rockchip layer"
 	install -d ${S}/arch/arm/boot/dts/rockchip
-	install -m 0644 ${THISDIR}/files/rk3506g-evb1-v10.dts \
-		${S}/arch/arm/boot/dts/rockchip/rk3506g-evb1-v10.dts
+	
+	# Install original device tree (for backward compatibility)
+	if [ -f ${THISDIR}/files/rk3506g-evb1-v10.dts ]; then
+		bbnote "Installing rk3506g-evb1-v10.dts"
+		install -m 0644 ${THISDIR}/files/rk3506g-evb1-v10.dts \
+			${S}/arch/arm/boot/dts/rockchip/rk3506g-evb1-v10.dts
+	fi
+	
+	# Install DSI display device tree
+	if [ -f ${THISDIR}/files/rk3506g-evb1-v10-dsi.dts ]; then
+		bbnote "Installing rk3506g-evb1-v10-dsi.dts"
+		install -m 0644 ${THISDIR}/files/rk3506g-evb1-v10-dsi.dts \
+			${S}/arch/arm/boot/dts/rockchip/rk3506g-evb1-v10-dsi.dts
+	fi
+	
+	# Install RGB display device tree
+	if [ -f ${THISDIR}/files/rk3506g-evb1-v10-rgb.dts ]; then
+		bbnote "Installing rk3506g-evb1-v10-rgb.dts"
+		install -m 0644 ${THISDIR}/files/rk3506g-evb1-v10-rgb.dts \
+			${S}/arch/arm/boot/dts/rockchip/rk3506g-evb1-v10-rgb.dts
+	fi
 }
 
