@@ -6,6 +6,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     htop \
     net-tools \
     file \
+    zram-init \
     lvgl \
     lvgl-demo-fb \
     dsi-display-test \

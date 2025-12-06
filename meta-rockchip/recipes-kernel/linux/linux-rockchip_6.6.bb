@@ -16,10 +16,12 @@ SRC_URI = " \
 	file://${THISDIR}/files/backlight.cfg \
 	file://${THISDIR}/files/mpp.cfg \
 	file://${THISDIR}/files/spi.cfg \
+	file://${THISDIR}/files/zram.cfg \
 	file://${THISDIR}/files/rk3506g-evb1-v10.dts \
 	file://${THISDIR}/files/rk3506g-evb1-v10-dsi.dts \
 	file://${THISDIR}/files/rk3506g-evb1-v10-rgb.dts \
 	file://${THISDIR}/files/rk3506g-evb1-v10-spi.dts \
+	file://${THISDIR}/files/rk3506b-evb1-v10.dts \
 "
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
@@ -63,6 +65,13 @@ do_configure:append() {
 		bbnote "Installing rk3506g-evb1-v10-spi.dts"
 		install -m 0644 ${THISDIR}/files/rk3506g-evb1-v10-spi.dts \
 			${S}/arch/arm/boot/dts/rockchip/rk3506g-evb1-v10-spi.dts
+	fi
+	
+	# Install RK3506B device tree
+	if [ -f ${THISDIR}/files/rk3506b-evb1-v10.dts ]; then
+		bbnote "Installing rk3506b-evb1-v10.dts"
+		install -m 0644 ${THISDIR}/files/rk3506b-evb1-v10.dts \
+			${S}/arch/arm/boot/dts/rockchip/rk3506b-evb1-v10.dts
 	fi
 }
 
