@@ -1,17 +1,28 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
  * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ *
+ * DT04 V1.0 Glue Valve Controller Board Device Tree
+ * Based on RK3506G2 with:
+ *   - RTL8201F Ethernet PHY
+ *   - PCF8563 RTC
+ *   - 6x RS485 (UART1-3 with DE/RE)
+ *   - ADS8664 ADC (SPI)
+ *   - MIPI DSI Display + Touch
+ *   - 8x Isolated Inputs, 16x MOSFET Outputs
  */
 
 /dts-v1/;
 
 #include "rk3506.dtsi"
-#include "rk3506-evb1-v10.dtsi"
 #include <dt-bindings/display/drm_mipi_dsi.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/pinctrl/rockchip.h>
 
 / {
-	model = "Rockchip RK3506G Core EVM Board";
-	compatible = "rockchip,rk3506g-core-evm", "rockchip,rk3506";
+	model = "DT04 V1.0 Glue Valve Controller";
+	compatible = "dt04,v1.0-glue-valve", "rockchip,rk3506";
 
 	chosen {
 		bootargs = "earlycon=uart8250,mmio32,0xff0a0000,115200 console=ttyFIQ0,115200 storagemedia=sd root=/dev/mmcblk0p3 rootfstype=ext4 rw rootwait";
@@ -47,23 +58,97 @@
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
 		gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;
-		vin-supply = <&vcc_sys>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&vcc5v0_otg0_en>;
 	};
 
-	vcc5v0_otg1: vcc5v0-otg1-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc5v0_otg1";
-		regulator-boot-on;
-		regulator-always-on;
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		enable-active-high;
-		gpio = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;
-		vin-supply = <&vcc_sys>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&vcc5v0_otg1_en>;
+	/* Buzzer - GPIO controlled (BELL1) @ GPIO1_A2 */
+	buzzer {
+		compatible = "gpio-buzzer";
+		gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;
+	};
+
+	/* Status LEDs */
+	leds {
+		compatible = "gpio-leds";
+
+		led_status: led-status {
+			label = "status";
+			/* GPIO1_C4 - unassigned in netlist, use for status LED */
+			gpios = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+	};
+
+	/* GPIO Keys - KEY1-4 */
+	gpio_keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		key1_trig_auto {
+			label = "KEY1_TRIG_AUTO";
+			gpios = <&gpio1 RK_PD0 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_F1>;
+			debounce-interval = <20>;
+		};
+
+		key2_trig_single {
+			label = "KEY2_TRIG_SINGLE";
+			gpios = <&gpio1 RK_PC7 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_F2>;
+			debounce-interval = <20>;
+		};
+
+		key3_run_stop {
+			label = "KEY3_RUN_STOP";
+			gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_F3>;
+			debounce-interval = <20>;
+		};
+
+		key4 {
+			label = "KEY4";
+			gpios = <&gpio1 RK_PC5 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_F4>;
+			debounce-interval = <20>;
+		};
+	};
+
+	/* FIN1-8: 8-channel isolated inputs (EL3H7 optocouplers) @ GPIO3 */
+	isolated_inputs {
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
+
+		fin1 { label = "FIN1"; gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>; linux,code = <BTN_1>; };
+		fin2 { label = "FIN2"; gpios = <&gpio3 RK_PB4 GPIO_ACTIVE_LOW>; linux,code = <BTN_2>; };
+		fin3 { label = "FIN3"; gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_LOW>; linux,code = <BTN_3>; };
+		fin4 { label = "FIN4"; gpios = <&gpio3 RK_PB2 GPIO_ACTIVE_LOW>; linux,code = <BTN_4>; };
+		fin5 { label = "FIN5"; gpios = <&gpio3 RK_PB1 GPIO_ACTIVE_LOW>; linux,code = <BTN_5>; };
+		fin6 { label = "FIN6"; gpios = <&gpio3 RK_PA7 GPIO_ACTIVE_LOW>; linux,code = <BTN_6>; };
+		fin7 { label = "FIN7"; gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>; linux,code = <BTN_7>; };
+		fin8 { label = "FIN8"; gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_LOW>; linux,code = <BTN_8>; };
+	};
+
+	/* FOUT1-16: 16-channel MOSFET outputs (RSR030N06) @ GPIO1 */
+	mosfet_outputs {
+		compatible = "gpio-leds";
+
+		fout1  { label = "FOUT1";  gpios = <&gpio1 RK_PB1 GPIO_ACTIVE_HIGH>; };
+		fout2  { label = "FOUT2";  gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>; };
+		fout3  { label = "FOUT3";  gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>; };
+		fout4  { label = "FOUT4";  gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>; };
+		fout5  { label = "FOUT5";  gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>; };
+		fout6  { label = "FOUT6";  gpios = <&gpio1 RK_PA6 GPIO_ACTIVE_HIGH>; };
+		fout7  { label = "FOUT7";  gpios = <&gpio1 RK_PA3 GPIO_ACTIVE_HIGH>; };
+		fout8  { label = "FOUT8";  gpios = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>; };
+		fout9  { label = "FOUT9";  gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>; };
+		fout10 { label = "FOUT10"; gpios = <&gpio1 RK_PA1 GPIO_ACTIVE_HIGH>; };
+		fout11 { label = "FOUT11"; gpios = <&gpio1 RK_PB7 GPIO_ACTIVE_HIGH>; };
+		fout12 { label = "FOUT12"; gpios = <&gpio1 RK_PC0 GPIO_ACTIVE_HIGH>; };
+		fout13 { label = "FOUT13"; gpios = <&gpio1 RK_PB5 GPIO_ACTIVE_HIGH>; };
+		fout14 { label = "FOUT14"; gpios = <&gpio1 RK_PB6 GPIO_ACTIVE_HIGH>; };
+		fout15 { label = "FOUT15"; gpios = <&gpio1 RK_PB3 GPIO_ACTIVE_HIGH>; };
+		fout16 { label = "FOUT16"; gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>; };
 	};
 
 	backlight: backlight {
@@ -109,26 +194,29 @@
 	};
 };
 
-&acodec_sound {
-	status = "disabled";
-};
-
 &cma {
 	size = <0x1600000>;
 };
 
+/*
+ * Audio removed - DT04 V1.0 has no audio codec
+ * &acodec_sound { status = "disabled"; };
+ * &es8388 { status = "disabled"; };
+ * &es8388_sound { status = "disabled"; };
+ * &sai1 { status = "disabled"; };
+ */
+
 &dsi {
 	status = "okay";
-	/* Try higher lane rate to match manufacturer's configuration (996 Mbps) */
-	/* Original: 850, Manufacturer: 996 */
+	/* MIPI DSI 2-lane for LCD display */
 	rockchip,lane-rate = <996>;
 
 	panel@0 {
 		compatible = "simple-panel-dsi";
 		reg = <0>;
 		power-supply = <&vcc3v3_lcd_n>;
-		/* GPIO1_D3 -> LCD_RESET (according to hardware connection table) */
-		reset-gpios = <&gpio1 RK_PD3 GPIO_ACTIVE_LOW>;
+		/* LCD_RESET @ GPIO4_B2 (pin 61) */
+		reset-gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_LOW>;
 		backlight = <&backlight>;
 		
 		/* Timing delays */
@@ -230,12 +318,22 @@
 	status = "okay";
 };
 
-&es8388 {
-	status = "disabled";
-};
+/*
+ * I2C0 - PCF8563 RTC
+ * SCL: GPIO0_B0 (pin 7)
+ * SDA: GPIO0_B1 (pin 8)
+ */
+&i2c0 {
+	status = "okay";
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io11_i2c0_scl &rm_io10_i2c0_sda>;
 
-&es8388_sound {
-	status = "disabled";
+	rtc_pcf8563: pcf8563@51 {
+		compatible = "nxp,pcf8563";
+		reg = <0x51>;
+		status = "okay";
+	};
 };
 
 //&i2c2 {
@@ -255,27 +353,33 @@
 //	};
 //};
 
-// TOUCH
-&i2c2 {
+/*
+ * I2C1 - Touch Controller (via RS0104 level shifter)
+ * 1.8V side: CTP_1V8_SDA/SCL
+ * 3.3V side: I2C1_CTP_SDA/SCL
+ */
+&i2c1 {
 	status = "okay";
-	 pinctrl-0 = <&rm_io4_i2c2_scl &rm_io5_i2c2_sda>;
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io13_i2c1_scl &rm_io12_i2c1_sda>;
 
-	myts@38 {
-		status = "okay";
+	touchscreen@38 {
 		compatible = "hyn,cst128a";
 		reg = <0x38>;
-		tp-size = <89>;
-		max-x = <480>;
-		max-y = <800>;
-		touch-gpio = <&gpio0 RK_PB1 IRQ_TYPE_LEVEL_LOW>;
-		reset-gpio = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
+		/* CTP INT @ GPIO0_B6 (pin 4), Reset @ GPIO2_A4 (pin 57) */
+		interrupt-parent = <&gpio0>;
+		interrupts = <RK_PB6 IRQ_TYPE_LEVEL_LOW>;
+		reset-gpios = <&gpio2 RK_PA4 GPIO_ACTIVE_HIGH>;
+		status = "okay";
 	};
 };
 
 &pinctrl {
-	myts{
+	/* Touch interrupt @ GPIO0_B6 */
+	touch {
 		touch_gpio: touch-gpio {
-			rockchip,pins = <0 RK_PB1 RK_FUNC_GPIO &pcfg_pull_up>;
+			rockchip,pins = <0 RK_PB6 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 };
@@ -290,9 +394,6 @@
 			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		vcc5v0_otg1_en: vcc5v0-otg1-en {
-			rockchip,pins = <1 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
 	};
 
 	sdmmc {
@@ -316,15 +417,17 @@
 	status = "okay";
 };
 
-&sai1 {
-	status = "disabled";
-};
-
+/*
+ * Ethernet - RTL8201F RMII PHY
+ * PHY address: 0x0
+ * 25MHz clock from external oscillator (X3)
+ */
 &gmac0 {
 	phy-mode = "rmii";
 	clock_in_out = "input";
 
-	snps,reset-gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_LOW>;
+	/* PHY reset: GPIO2_A0 (pin 59) */
+	snps,reset-gpio = <&gpio2 RK_PA0 GPIO_ACTIVE_LOW>;
 	snps,reset-active-low;
 	snps,reset-delays-us = <0 20000 100000>;
 
@@ -334,24 +437,41 @@
 		     &eth_rmii0_rx_bus2_pins
 		     &eth_rmii0_clk_pins>;
 
-	phy-handle = <&rmii_phy0>;
-	/* Fixed MAC address: da:40:4e:c0:94:55 */
-	local-mac-address = [da 40 4e c0 94 55];
+	phy-handle = <&rtl8201f>;
 	status = "okay";
 };
 
 &mdio0 {
 	status = "okay";
-	/* Override PHY configuration for YT8512B */
-	/delete-node/ phy@1;
-	rmii_phy0: phy@0 {
-		compatible = "motorcomm,yt8512", "ethernet-phy-id0000.0011", "ethernet-phy-ieee802.3-c22";
+
+	rtl8201f: phy@0 {
+		compatible = "realtek,rtl8201f", "ethernet-phy-ieee802.3-c22";
 		reg = <0x0>;
 		max-speed = <100>;
-		clocks = <&cru CLK_MAC_OUT>;
-		assigned-clocks = <&cru CLK_MAC_OUT>;
-		assigned-clock-rates = <25000000>;
+		/* External 25MHz crystal (X3) provides PHY clock */
 	};
+};
+
+/*
+ * UART1 - RS485 Channel 1 & 2 (TP75176E x2)
+ */
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io9_uart1_tx &rm_io7_uart1_rx>;
+	linux,rs485-enabled-at-boot-time;
+	rs485-rts-active-high;
+	status = "okay";
+};
+
+/*
+ * UART2 - RS485 Channel 3 & 4 (TP75176E x2)
+ */
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io6_uart2_tx &rm_io4_uart2_rx>;
+	linux,rs485-enabled-at-boot-time;
+	rs485-rts-active-high;
+	status = "okay";
 };
 
 &uart0 {
@@ -362,16 +482,31 @@
 
 &uart3 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&rm_io26_uart3_tx &rm_io25_uart3_rx &rm_io24_uart3_rtsn &rm_io29_uart3_ctsn>;
-	linux,rs485-enabled-at-boot-time;	/* enable rs485 */
+	pinctrl-0 = <&rm_io3_uart3_tx &rm_io1_uart3_rx>;
+	linux,rs485-enabled-at-boot-time;
+	rs485-rts-active-high;
 	status = "okay";
 };
 
 &uart4 {
 	dma-names = "!tx", "!rx";	/* remove ! to enable dma */
 	pinctrl-names = "default";
-	pinctrl-0 = <&rm_io27_uart4_tx &rm_io28_uart4_rx>;   /* vccio1 */
+};
+
+/*
+ * SPI0 - ADS8664 4-Channel ADC
+ */
+&spi0 {
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&rm_io16_spi0_clk &rm_io15_spi0_csn0 &rm_io17_spi0_mosi &rm_io18_spi0_miso>;
+
+	adc_ads8664: ads8664@0 {
+		compatible = "ti,ads8664";
+		reg = <0>;
+		spi-max-frequency = <10000000>;
+		status = "okay";
+	};
 };
 
 &u2phy_otg0 {
@@ -380,21 +515,9 @@
 	status = "okay";
 };
 
-&u2phy_otg1 {
-	phy-supply = <&vcc5v0_otg1>;
-	status = "okay";
-};
 
 &usb2phy {
 	extcon = <&extcon_usb>;
-	status = "okay";
-};
-
-&pwm0_4ch_2 {
-	pinctrl-names = "active";
-	pinctrl-0 = <&rm_io10_pwm0_ch2>;
-	assigned-clocks = <&cru CLK_PWM0>;
-	assigned-clock-rates = <100000000>;
 	status = "okay";
 };
 
@@ -419,8 +542,4 @@
 	status = "okay";
 };
 
-/* Configure FIQ debugger to use 115200 baudrate */
-&fiq_debugger {
-	rockchip,baudrate = <115200>;
-};
 
